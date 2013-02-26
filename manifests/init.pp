@@ -147,6 +147,7 @@ class apache (
         scriptalias     => $scriptalias,
         serveradmin     => $serveradmin,
         access_log_file => "ssl_${access_log_file}",
+        priority        => '15',
       }
     }
   }

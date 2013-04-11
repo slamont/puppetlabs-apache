@@ -63,7 +63,7 @@ describe 'apache', :type => :class do
     ].each do |modname|
       it { should contain_file("#{modname}.load").with(
         'path'   => "/etc/apache2/mods-available/#{modname}.load",
-        'ensure' => 'file',
+        'ensure' => 'file'
       ) }
       it { should contain_file("#{modname}.load symlink").with(
         'path'   => "/etc/apache2/mods-enabled/#{modname}.load",
@@ -88,7 +88,7 @@ describe 'apache', :type => :class do
     ].each do |modname|
       it { should contain_file("#{modname}.load").with(
         'path'   => "/etc/apache2/mods-available/#{modname}.load",
-        'ensure' => 'file',
+        'ensure' => 'file'
       ) }
       it { should contain_file("#{modname}.load symlink").with(
         'path'   => "/etc/apache2/mods-enabled/#{modname}.load",
@@ -97,7 +97,7 @@ describe 'apache', :type => :class do
       ) }
       it { should contain_file("#{modname}.conf").with(
         'path'   => "/etc/apache2/mods-available/#{modname}.conf",
-        'ensure' => 'file',
+        'ensure' => 'file'
       ) }
       it { should contain_file("#{modname}.conf symlink").with(
         'path'   => "/etc/apache2/mods-enabled/#{modname}.conf",

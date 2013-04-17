@@ -113,7 +113,7 @@ class apache (
     owner  => 'root',
     group  => 'root',
     mode   => '0644',
-    notify => Service[$apache::params::apache_name],
+    notify => Service['httpd'],
   }
   concat::fragment { "Apache ports header":
     target  => $ports_file,

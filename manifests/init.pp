@@ -30,7 +30,8 @@ class apache (
   $confd_dir            = $apache::params::confd_dir,
   $vhost_dir            = $apache::params::vhost_dir,
   $mod_dir              = $apache::params::mod_dir,
-  $mod_enable_dir       = $apache::params::mod_enable_dir
+  $mod_enable_dir       = $apache::params::mod_enable_dir,
+  $package_ensure       = 'installed'
 ) inherits apache::params {
 
   package { 'httpd':

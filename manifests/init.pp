@@ -32,10 +32,11 @@ class apache (
   $mod_dir              = $apache::params::mod_dir,
   $mod_enable_dir       = $apache::params::mod_enable_dir,
   $mpm_module           = $apache::params::mpm_module,
+  $package_ensure       = 'installed'
 ) inherits apache::params {
 
   package { 'httpd':
-    ensure => installed,
+    ensure => $package_ensure,
     name   => $apache::params::apache_name,
   }
 

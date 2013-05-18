@@ -46,11 +46,11 @@ describe 'apache', :type => :class do
       'require' => 'Package[httpd]'
       )
     }
-    it { should contain_file("/etc/apache2/ports.conf").with(
+    it { should contain_concat("/etc/apache2/ports.conf").with(
       'owner'   => 'root',
       'group'   => 'root',
       'mode'    => '0644',
-      'notify'  => 'Service[httpd]',
+      'notify'  => 'Service[httpd]'
       )
     }
     # Assert that load files are placed and symlinked for these mods, but no conf file.
@@ -62,7 +62,7 @@ describe 'apache', :type => :class do
       'authz_host',
       'authz_user',
       'dav',
-      'env',
+      'env'
     ].each do |modname|
       it { should contain_file("#{modname}.load").with(
         'path'   => "/etc/apache2/mods-available/#{modname}.load",
@@ -130,7 +130,7 @@ describe 'apache', :type => :class do
       'subscribe' => 'Package[httpd]'
       )
     }
-    it { should contain_file("/etc/httpd/site.d").with(
+    it { should contain_file("/etc/httpd/conf.d").with(
       'ensure'  => 'directory',
       'recurse' => 'true',
       'purge'   => 'true',
@@ -138,7 +138,7 @@ describe 'apache', :type => :class do
       'require' => 'Package[httpd]'
       )
     }
-    it { should contain_file("/etc/httpd/conf/ports.conf").with(
+    it { should contain_concat("/etc/httpd/conf/ports.conf").with(
       'owner'   => 'root',
       'group'   => 'root',
       'mode'    => '0644',
@@ -148,19 +148,21 @@ describe 'apache', :type => :class do
     describe "Alternate confd/mod/vhosts directory" do
       let :params do
         {
-          :vhost_dir => '/etc/httpd/conf.d',
+          :vhost_dir => '/etc/httpd/site.d',
           :confd_dir => '/etc/httpd/conf.d',
-          :mod_dir   => '/etc/httpd/conf.d',
+          :mod_dir   => '/etc/httpd/mod.d',
         }
       end
 
-      it { should contain_file("/etc/httpd/conf.d").with(
-        'ensure'  => 'directory',
-        'recurse' => 'true',
-        'purge'   => 'true',
-        'notify'  => 'Service[httpd]',
-        'require' => 'Package[httpd]'
-      ) }
+      ['mod.d','site.d','conf.d'].each do |dir|
+        it { should contain_file("/etc/httpd/#{dir}").with(
+          'ensure'  => 'directory',
+          'recurse' => 'true',
+          'purge'   => 'true',
+          'notify'  => 'Service[httpd]',
+          'require' => 'Package[httpd]'
+        ) }
+      end
 
       # Assert that load files are placed for these mods, but no conf file.
       [
@@ -174,10 +176,10 @@ describe 'apache', :type => :class do
         'env',
       ].each do |modname|
         it { should contain_file("#{modname}.load").with_path(
-          "/etc/httpd/conf.d/#{modname}.load"
+          "/etc/httpd/mod.d/#{modname}.load"
         ) }
         it { should_not contain_file("#{modname}.conf").with_path(
-          "/etc/httpd/conf.d/#{modname}.conf"
+          "/etc/httpd/mod.d/#{modname}.conf"
         ) }
       end
 
@@ -194,17 +196,17 @@ describe 'apache', :type => :class do
         'status',
       ].each do |modname|
         it { should contain_file("#{modname}.load").with_path(
-          "/etc/httpd/conf.d/#{modname}.load"
+          "/etc/httpd/mod.d/#{modname}.load"
         ) }
         it { should contain_file("#{modname}.conf").with_path(
-          "/etc/httpd/conf.d/#{modname}.conf"
+          "/etc/httpd/mod.d/#{modname}.conf"
         ) }
       end
 
-      it { should_not contain_file("/etc/httpd/site.d") }
-      it { should_not contain_file("/etc/httpd/mod.d") }
       it { should contain_file("/etc/httpd/conf/httpd.conf").with_content %r{^Include /etc/httpd/conf\.d/\*\.conf$} }
-      it { should contain_file("/etc/httpd/conf/httpd.conf").with_content %r{^Include /etc/httpd/conf\.d/\*\.load$} }
+      it { should contain_file("/etc/httpd/conf/httpd.conf").with_content %r{^Include /etc/httpd/site\.d/\*\.conf$} }
+      it { should contain_file("/etc/httpd/conf/httpd.conf").with_content %r{^Include /etc/httpd/mod\.d/\*\.conf$} }
+      it { should contain_file("/etc/httpd/conf/httpd.conf").with_content %r{^Include /etc/httpd/mod\.d/\*\.load$} }
     end
 
     describe "Alternate conf.d directory" do
@@ -219,7 +221,38 @@ describe 'apache', :type => :class do
         'notify'  => 'Service[httpd]',
         'require' => 'Package[httpd]'
       ) }
-      it { should_not contain_file("/etc/httpd/conf.d") }
+    end
+
+    describe "Alternate mpm_modules" do
+      context "when declaring mpm_module is false" do
+        let :params do
+          { :mpm_module => false }
+        end
+        it 'should not declare mpm modules' do
+          should_not contain_class('apache::mod::prefork')
+          should_not contain_class('apache::mod::worker')
+        end
+      end
+      context "when declaring mpm_module => prefork" do
+        let :params do
+          { :mpm_module => 'prefork' }
+        end
+        it { should contain_class('apache::mod::prefork') }
+        it { should_not contain_class('apache::mod::worker') }
+      end
+      context "when declaring mpm_module => worker" do
+        let :params do
+          { :mpm_module => 'worker' }
+        end
+        it { should contain_class('apache::mod::worker') }
+        it { should_not contain_class('apache::mod::prefork') }
+      end
+      context "when declaring mpm_module => breakme" do
+        let :params do
+          { :mpm_module => 'breakme' }
+        end
+        it { expect { should contain_class('apache::params') }.to raise_error Puppet::Error, /does not match/ }
+      end
     end
   end
 end

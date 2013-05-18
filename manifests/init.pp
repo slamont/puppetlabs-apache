@@ -24,6 +24,7 @@ class apache (
   $default_ssl_crl      = undef,
   $service_enable       = true,
   $purge_configs        = true,
+  $purge_vdir           = true,
   $serveradmin          = 'root@localhost',
   $sendfile             = false,
   $error_documents      = false,
@@ -31,6 +32,7 @@ class apache (
   $vhost_dir            = $apache::params::vhost_dir,
   $mod_dir              = $apache::params::mod_dir,
   $mod_enable_dir       = $apache::params::mod_enable_dir,
+  $mpm_module           = $apache::params::mpm_module,
   $package_ensure       = 'installed'
 ) inherits apache::params {
 
@@ -43,6 +45,9 @@ class apache (
   validate_bool($default_vhost)
   # true/false is sufficient for both ensure and enable
   validate_bool($service_enable)
+  if $mpm_module {
+    validate_re($mpm_module, '(prefork|worker)')
+  }
 
   $user       = $apache::params::user
   $group      = $apache::params::group
@@ -71,10 +76,18 @@ class apache (
     subscribe => Package['httpd'],
   }
 
+  # Deprecated backwards-compatibility
+  if $purge_vdir {
+    warning("Class['apache'] parameter purge_vdir is deprecated in favor of purge_configs")
+    $purge_confd = $purge_vdir
+  } else {
+    $purge_confd = $purge_configs
+  }
+
   file { $apache::confd_dir:
     ensure  => directory,
     recurse => true,
-    purge   => $purge_configs,
+    purge   => $purge_confd,
     notify  => Service['httpd'],
     require => Package['httpd'],
   }
@@ -161,6 +174,9 @@ class apache (
     }
     if $default_mods {
       include apache::default_mods
+    }
+    if $mpm_module {
+      class { "apache::mod::${mpm_module}": }
     }
     if $default_vhost {
       apache::vhost { 'default':

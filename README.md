@@ -141,7 +141,7 @@ The default SSL certification, which is automatically set based on your operatin
 
 #####`default_ssl_key`
 
-The default SSL key, which is automatically set based on your operating system (`/etc/pki/tls/private/localhost.key' for RedHat, `/etc/ssl/private/ssl-cert-snakeoil.key` for Debian). This default will work out of the box but must be updated with your specific certificate information before being used in production.
+The default SSL key, which is automatically set based on your operating system (`/etc/pki/tls/private/localhost.key` for RedHat, `/etc/ssl/private/ssl-cert-snakeoil.key` for Debian). This default will work out of the box but must be updated with your specific certificate information before being used in production.
 
 #####`default_ssl_chain`
 
@@ -187,6 +187,10 @@ Changes the location of the configuration directory your virtual host configurat
 
 Changes the location of the configuration directory your Apache modules configuration files are placed in. Default is based on your OS. 
           
+#####`mpm_module`
+
+Configures which mpm module is loaded and configured for the httpd process by the `apache::mod::prefork` and `apache::mod::worker` classes. Must be set to `false` to explicitly declare `apache::mod::worker` or `apache::mod::prefork` classes with parameters. Valid values are `worker`, `prefork`, or the boolean `false`. Defaults to `prefork` on RedHat and `worker` on Debian.
+
 ####Class: `apache::default_mods`
 
 Installs default Apache modules based on what OS you are running
@@ -226,6 +230,7 @@ There are many `apache::mod::[name]` classes within this module that can be decl
 * `passenger`*
 * `perl`
 * `php`
+* `prefork`*
 * `proxy`*
 * `proxy_html`
 * `proxy_http`
@@ -235,6 +240,7 @@ There are many `apache::mod::[name]` classes within this module that can be decl
 * `ssl`* (see [apache::mod::ssl](#class-apachemodssl) below)
 * `status`
 * `userdir`*
+* `worker`*
 * `wsgi`
 
 Modules noted with a * indicate that the module has settings and, thus, a template that includes parameters. These parameters control the module's configuration. Most of the time, these parameters will not require any configuration or attention. 
@@ -273,6 +279,14 @@ Specifies whether `*_access.log` directives should be configured. Valid values a
 
 Points to the `*_access.log` file. Defaults to 'undef'.
 
+#####`access_log_pipe`
+
+Specifies a pipe to send access log messages to. Defaults to 'undef'.
+
+#####`access_log_format`
+
+Specifies either a LogFormat nickname or custom format string for access log. Defaults to 'undef'.
+
 #####`add_listen`
 
 Determines whether the vhost creates a listen statement. The default value is 'true'. 
@@ -287,9 +301,9 @@ Specifies the list of things Apache will block access to. The default is an empt
 
 Specifies whether a firewall should be configured. Valid values are 'true' or 'false'.
 
-#####`content`
+#####`custom_fragment`
 
-Specifies alternative vhost configuration content. Valid values are strings.
+Pass a string of custom configuration directives to be placed at the end of the vhost configuration.
 
 #####`default_vhost`
 
@@ -314,6 +328,10 @@ Specifies whether `*_error.log` directives should be configured. Defaults to 'tr
 #####`error_log_file`
 
 Points to the `*_error.log` file. Defaults to 'undef'.
+
+#####`error_log_pipe`
+
+Specifies a pipe to send error log messages to. Defaults to 'undef'.
 
 #####`ensure`
 
@@ -363,6 +381,22 @@ If nothing matches the priority, the first name-based vhost will be used. Likewi
 #####`proxy_dest`
 
 Specifies the destination address of a proxypass configuration. Defaults to 'undef'.
+
+#####`proxy_pass`
+
+Specifies an array of path => uri for a proxypass configuration. Defaults to 'undef'.
+
+Example:
+$proxy_pass = [
+  { 'path' => '/a', 'url' => 'http://backend-a/' },
+  { 'path' => '/b', 'url' => 'http://backend-b/' },
+  { 'path' => '/c', 'url' => 'http://backend-a/c' },
+]
+
+apache::vhost { 'site.name.fdqn':
+  …
+  proxy_pass       => $proxy_pass,
+}
 
 #####`rack_base_uris`
 

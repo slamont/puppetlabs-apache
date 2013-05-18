@@ -32,12 +32,13 @@ class apache::params {
     $httpd_dir            = '/etc/httpd'
     $conf_dir             = "${httpd_dir}/conf"
     $confd_dir            = "${httpd_dir}/conf.d"
-    $mod_dir              = "${httpd_dir}/mod.d"
-    $vhost_dir            = "${httpd_dir}/site.d"
+    $mod_dir              = "${httpd_dir}/conf.d"
+    $vhost_dir            = "${httpd_dir}/conf.d"
     $conf_file            = 'httpd.conf'
     $ports_file           = "${conf_dir}/ports.conf"
     $logroot              = '/var/log/httpd'
     $lib_path             = 'modules'
+    $mpm_module           = 'prefork'
     $dev_packages         = 'httpd-devel'
     $default_ssl_cert     = '/etc/pki/tls/certs/localhost.crt'
     $default_ssl_key      = '/etc/pki/tls/private/localhost.key'
@@ -79,6 +80,7 @@ class apache::params {
     $ports_file       = "${conf_dir}/ports.conf"
     $logroot          = '/var/log/apache2'
     $lib_path         = '/usr/lib/apache2/modules'
+    $mpm_module       = 'worker'
     $dev_packages     = ['libaprutil1-dev', 'libapr1-dev', 'apache2-prefork-dev']
     $default_ssl_cert = '/etc/ssl/certs/ssl-cert-snakeoil.pem'
     $default_ssl_key  = '/etc/ssl/private/ssl-cert-snakeoil.key'
